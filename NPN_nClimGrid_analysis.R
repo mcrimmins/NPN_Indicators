@@ -84,6 +84,7 @@ npnData$doy_slope<-NA
 npnData$doy_pval<-NA
 npnData$clim_slope<-NA
 npnData$clim_pval<-NA
+npnData$meanMo<-NA
 
 #Kendall::MannKendall(as.numeric(npnData[1,19:31]))[1]
 
@@ -96,6 +97,8 @@ for(i in 1:nrow(npnData)){
   npnData$doyMedian[i]<-median(as.numeric(npnData[i,obsCols]), na.rm=TRUE)
   npnData$doySD[i]<-sd(as.numeric(npnData[i,obsCols]), na.rm=TRUE)
   meanMo<-as.numeric(format(as.Date(paste0(round(npnData$doyMedian[i],0),"-2000"), format = "%j-%Y"),"%m"))
+  
+  npnData$meanMo[i]<-meanMo
   
   #  por<-13
   # get NPN obPeriod
@@ -227,6 +230,15 @@ ggplot() +
   geom_point(data = subDataSites, aes(x = longitude, y = latitude, color=percMean, size=percSD, alpha=0.5))+
   #scale_colour_gradient(low = "yellow", high = "red")+
   scale_colour_gradient2(low = "blue",mid = "white", high = "red", midpoint = 0.5)+
+  facet_wrap(.~phase_name)
+
+ggplot() +
+  geom_polygon(data = states, aes(x = long, y = lat, group = group), fill=NA, color="black", size=0.1)  +
+  #coord_fixed(xlim=c(out$meta$ll[1]-zoomLev, out$meta$ll[1]+zoomLev), ylim=c(out$meta$ll[2]-zoomLev, out$meta$ll[2]+zoomLev), ratio = 1) +
+  #coord_fixed(xlim=c(-118, -102), ylim=c(28.75, 37.5), ratio = 1) +
+  geom_point(data = subDataSites, aes(x = longitude, y = latitude, color=meanMo))+
+  #scale_colour_gradient(low = "yellow", high = "red")+
+  scale_colour_gradient2(low = "blue",mid = "green", high = "red")+
   facet_wrap(.~phase_name)
 
 # relationships between metrics
