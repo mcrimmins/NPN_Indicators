@@ -26,7 +26,7 @@ dates<-dates[which(dates>="2009-01-01")]
 
 # 3-month moving average
 #x <- calc(st1, function(x) movingFun(x, 3, mean))
-win <- 3
+win <- 2
 fMov <- function(x) movingFun(x, win, mean, type = 'to')
 beginCluster(7)
   temp3mo <- clusterR(temp, calc, args=list(fun=fMov), export='win')
@@ -47,4 +47,4 @@ fun <- function(x, y) {
 temp3mo_anom <- overlay(x = temp3mo, y = temp3mo_avg, fun = fun)
 names(temp3mo_anom)<-dates$dates
 
-writeRaster(temp3mo_anom,filename="/scratch/crimmins/climgrid/processed/conus/CONUSmonthly_nClimGrid_tmean_anom_012009_092021.grd", overwrite=TRUE )
+writeRaster(temp3mo_anom,filename="/scratch/crimmins/climgrid/processed/conus/CONUSmonthly_nClimGrid_2mo_tmean_anom_011895_092021.grd", overwrite=TRUE )
