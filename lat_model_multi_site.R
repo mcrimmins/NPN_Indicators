@@ -166,11 +166,15 @@ ggplot(temp, aes(mean_first_yes_year,pred,color=name_pheno))+
   #geom_hline(yintercept = meanDate[1])+
   #geom_hline(yintercept = meanDate[2])+
   #geom_ribbon(data=pred, aes(ymin = predLow, ymax = predHigh, x = mean_first_yes_year, group=lat,fill=lat), alpha = 0.4)+
-  geom_segment(aes(x=mean_first_yes_year,y=lat35,xend=mean_first_yes_year,yend=length+lat35))+
-  facet_wrap(.~name_pheno)+
+  geom_segment(aes(x=mean_first_yes_year,y=lat35,xend=mean_first_yes_year,yend=length+lat35),position = position_dodge(width = 0.2))+
+  #facet_wrap(.~name_pheno)+
   ggtitle("Season length (prediction at 35 and 45 deg lat)")
 
+temp$name_pheno<-factor(temp$name_pheno, levels=c("flowering dogwood-Open flowers","American beech-Leaves"))
 
 
-
+ggplot(temp, aes(ymin = lat35, ymax = lat45, x = mean_first_yes_year)) + 
+  geom_linerange(aes(color = name_pheno),position = position_dodge(width = 0.4), size = 2)+
+  scale_x_continuous(breaks=seq(2009,2021,1))+
+  theme_bw()
 

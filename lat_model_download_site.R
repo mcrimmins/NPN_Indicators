@@ -31,6 +31,16 @@ for(j in 1:length(phenoID)){  # length(phenoID)
 
 save(NPNlist, file="NPNData_site_for_lat_model.RData")
 
+# data pull for archival
+
+npnData<-npn_download_site_phenometrics(request_source = "TCrimmins", c(2009:2021),
+                               species_id = sspID, phenophase_id = phenoID,
+                               additional_fields = c("species_functional_type", "species_category", "Observed_Status_Conflict_Flag",
+                                                     "site_name", "Partner_Group", "Dataset_ID"))
+
+
+write.csv(npnData, file="ERL_npnData.csv")
+
 #######
 
 load("NPNData_site_for_lat_model.RData")

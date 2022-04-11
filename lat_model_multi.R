@@ -8,6 +8,9 @@ library(dplyr)
 library(plyr)
 library(ggplot2)
 
+# load terrain data
+load("terrainData.RData")
+
 # models to consider 61/371 (sugar maple), 
 NNObs <- npn_download_individual_phenometrics(request_source = "TCrimmins", c(2009:2021),
                                               species_id = c(12,79), phenophase_id = c(483,501),
@@ -28,6 +31,9 @@ NNObs2<-leaf_data_1yes_prevno[which(leaf_data_1yes_prevno$first_yes_doy <=180),]
 # geography
 NNObs2<-subset(NNObs2,longitude<0)
 NNObs2<-subset(NNObs2,latitude<=50)
+
+# extract elevation
+NNObs2$elevExt<-extract(elevation, SpatialPoints(NNObs2[,c("longitude","latitude")]), sp = T)@data$USA1_msk_alt
 
 # NNObs
 NNObs2$name_pheno<-paste0(NNObs2$common_name,"-",NNObs2$phenophase_description)
