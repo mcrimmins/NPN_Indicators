@@ -282,6 +282,96 @@ dev.off()
 
 
 #####
+library(scales)
 
 
+# make elevation prediction grid
+
+US<-getData('GADM', country='USA', level=0)
+US <- crop(US, extent(-127.5, -65, 24.2, 50.3))
+countries<-subset(countries, region!="USA")
+
+elev<-getData('alt', country='USA', mask=TRUE)
+plot(elev[[1]])
+
+# land only mask from temp grids
+tmean_anom<-stack("/scratch/crimmins/climgrid/processed/conus/CONUSmonthly_nClimGrid_2mo_tmean_anom_011895_092021.grd")
+mask<-tmean_anom[[1521]]
+  rm(tmean_anom)
+
+mask<-reclassify(mask, c(-Inf,Inf,1))
+mask<-resample(mask,elev[[1]], method='ngb')
+elev<-mask*elev[[1]]
+
+xy <- coordinates(elev)
+lat <- elev
+lat[] <- xy[, 2]
+
+doyRaster<-stack(lat,elev)
+names(doyRaster)<-c("latitude","elevation_in_meters")
+
+doy <- predict(doyRaster, latModel, progress='text')
+
+plot(doy)
+
+# ggplot of raster
+
+coords <- xyFromCell(doy, seq_len(ncell(doy)))
+doy <- stack(as.data.frame(getValues(doy)))
+names(doy) <- c('value', 'variable')
+
+doy <- cbind(coords, doy)
+# ggplot(doy) + 
+#   geom_tile(aes(x, y, fill = value))+
+#   scale_fill_gradientn(colours = rainbow(5), na.value=NA)+
+#   coord_equal( xlim = c(-98.5, -66.5), ylim = c(25, 50))+
+#   theme_bw()
+
+map<-  ggplot() + geom_polygon(data = countries, aes(x = long, y = lat, group = group), fill="grey", color="black", size=0.1) + 
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "powderblue"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        line = element_blank())
+map<- map + 
+  #geom_tile(data=doy, aes(x, y, fill = value, color=value))+ # color=value? or geom_raster
+  geom_raster(data=doy, aes(x, y, fill = value))+ # color=value? or geom_raster
+  scale_fill_gradientn(colours = viridis_pal()(10), na.value=NA, # or rainbow(5)
+                       limits=c(60, 160), oob=scales::squish,
+                       name="Day of Year",)+
+   coord_equal( xlim = c(-98.5, -66.5), ylim = c(25, 50))
+
+map <- map +      geom_polygon(data = states, aes(x = long, y = lat, group = group), fill=NA, color="grey50", size=0.1) 
+  
+# adding in fig 1
+
+p<-ggplot(NNObsClim)+
+  geom_point(aes(latitude, mean_first_yes_doy, color=elevation_in_meters), size=1)+
+  geom_smooth(aes(latitude, mean_first_yes_doy), method=lm, se=FALSE)+
+  scale_colour_gradientn(colours = terrain.colors(10), name="Elevation (m)")+
+  #ggtitle(paste0(NNObs2$common_name[1],"-",NNObs2$phenophase_description[1]))+
+  #ggpubr::stat_cor(aes(latitude, mean_first_yes_doy),method = "pearson")+
+  theme_bw()+
+  xlab("Latitude (deg N)")+
+  ylab("Day of Year")
+
+library(cowplot)
+p<-plot_grid(
+  p, map,
+  labels = c("(a)","(b)"), ncol = 1,
+  label_size = 12,
+  label_x = 0, label_y = 0,
+  hjust = -0.5, vjust = -1
+)
+
+
+tiff("/home/crimmins/RProjects/NPNClimate/figs/fig1new.tif",
+     width = 4.5, height = 3.5, units = "in", res = 300L)
+# png("/home/crimmins/RProjects/NPNClimate/figs/fig1new.png",
+#      width = 4.5, height = 3.5, units = "in", res = 300L)
+print(p)
+dev.off()
 
